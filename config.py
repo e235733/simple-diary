@@ -1,0 +1,2 @@
+WINDOW_SIZE = "1080x720"
+APP_TITLE = "Simple Diary"
