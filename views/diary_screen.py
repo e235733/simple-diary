@@ -14,7 +14,6 @@ class DiaryScreen(tk.Frame):
 
         self.make_diary_list()
         self.make_diary_content()
-        self.make_write_operation()
 
     # リストと追加ボタンのフレームを作成
     def make_diary_list(self):
@@ -28,13 +27,13 @@ class DiaryScreen(tk.Frame):
         # ボタンを作成
         self.add_button_frame = tk.Frame(self.list_operation_frame, bg="red")
         self.add_button_frame.grid(row=0, column=0, sticky="ew")
-        self.add_button = tk.Button(self.add_button_frame, text="日記を追加")
+        self.add_button = tk.Button(self.add_button_frame, text="日記を追加", command=self.on_click_add_button)
         self.add_button.pack(fill="both", expand=True)
 
         # リストを作成
         self.diary_list_frame = tk.Frame(self.list_operation_frame, bg="blue")
         self.diary_list_frame.grid(row=1, column=0, sticky="nsew")
-        self.diary_list = tk.Listbox(self.diary_list_frame, selectmode="browse")
+        self.diary_list = tk.Listbox(self.diary_list_frame, selectmode="browse", exportselection=False)
         self.diary_list.pack(fill="both", expand=True)
         # 選択イベントを紐付ける
         self.diary_list.bind("<<ListboxSelect>>", self.on_diary_select)
@@ -82,14 +81,14 @@ class DiaryScreen(tk.Frame):
         self.text_operation_frame.grid_rowconfigure(0, weight=0)
         self.text_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
 
-        # 決定ボタンフレームを作成
-        self.submit_button_frame = tk.Frame(self.text_operation_frame, bg="skyblue")
-        self.submit_button_frame.grid(row=0, column=0, sticky="nsew")
-        self.submit_button = tk.Button(self.submit_button_frame, text="決定")
-        self.submit_button.pack(fill="both")
+        # 保存ボタンフレームを作成
+        self.save_button_frame = tk.Frame(self.text_operation_frame, bg="skyblue")
+        self.save_button_frame.grid(row=0, column=0, sticky="nsew")
+        self.save_button = tk.Button(self.save_button_frame, text="保存", command=self.on_click_save_button)
+        self.save_button.pack(fill="both")
 
     # リストの要素が選択された場合の処理
-    def on_diary_select(self, event):
+    def on_diary_select(self, event=None):
         selection = self.diary_list.curselection()
         # イベントがなければ終了
         if not selection:
@@ -106,3 +105,27 @@ class DiaryScreen(tk.Frame):
         self.diary_text.delete("1.0", tk.END)
         self.diary_text.insert(tk.END, content)
         self.diary_text.config(state="disabled")
+
+        self.make_show_operation()
+
+    # 追加ボタンが押された場合の処理
+    def on_click_add_button(self):
+        # リストの選択を解除
+        self.diary_list.select_clear(0, tk.END)
+        # テキストを削除して書き込みモードへ変更
+        self.diary_text.config(state="normal")
+        self.diary_text.delete("1.0", tk.END)
+        self.make_write_operation()
+
+    # 保存ボタンが押された場合の処理
+    def on_click_save_button(self):
+        # ユーザの入力内容を取得
+        input_content = self.diary_text.get("1.0", tk.END)
+        # データベースに保存
+        self.db.add_diary(input_content)
+        # 内容を削除し表示モードへ変更
+        self.make_diary_list()
+        self.diary_list.select_set(0)
+        self.on_diary_select()
+        self.make_show_operation()
+        
