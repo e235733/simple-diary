@@ -2,7 +2,6 @@ import tkinter as tk
 import config
 from views.diary_screen import DiaryScreen
 
-
 class App(tk.Tk):
     def __init__(self):
         super().__init__()

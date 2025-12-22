@@ -35,19 +35,44 @@ class DatabaseManager:
             cursor.execute(sql, (today, content))
             conn.commit()
             print(f"DEBUG: Saved {today}, {content}")
+
+    # テスト用大量追加メソッド
+    def add_test_diary(self, count):
+        sql = "INSERT INTO diaries (date, content) VALUES (?, ?)"
+        test_date0 = datetime.date(2025, 6, 30)
+
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            for i in range(count):
+                date = test_date0 - datetime.timedelta(days=i)
+                content = f"{(count-i)**2}円稼げた、明日は{count-i}回腹筋する。"
+                print(content)
+                cursor.execute(sql, (date, content))
+            conn.commit()
+        
     
-    # 日記を読み込む
-    def get_diaries(self):
+    # 日記リストを読み込む
+    def get_list(self):
         # 新しい順で取得
-        sql = "SELECT id date content FROM diaries ORDER BY id DESC"
+        sql = "SELECT id, date FROM diaries ORDER BY id DESC"
 
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(sql)
             
-            return cursor.fetchall
+            return cursor.fetchall()
+        
+    # 内容を読み込む
+    def get_content(self, diary_id):
+        sql = "SELECT * FROM diaries WHERE id = ?"
+
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (diary_id,))
+
+            return cursor.fetchone()
 
 if __name__ == "__main__":
     db = DatabaseManager()
-    db.add_diary("テスト用データだよー、今日は hello, world! した。")
-    print(db.get_diaries)
+    print(db.get_list())
+    print(db.get_content(25))

@@ -1,15 +1,19 @@
 import tkinter as tk
+from database import DatabaseManager
 
 class DiaryScreen(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
+
+        self.db = DatabaseManager()
+
         # 0行目,1列目に対して広がりを許可し、0列目には許可しない
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(1, weight=1) 
 
         self.make_diary_list()
-        self.make_diary_show()
+        self.make_diary_content()
         self.make_write_operation()
 
     # リストと追加ボタンのフレームを作成
@@ -32,18 +36,20 @@ class DiaryScreen(tk.Frame):
         self.diary_list_frame.grid(row=1, column=0, sticky="nsew")
         self.diary_list = tk.Listbox(self.diary_list_frame, selectmode="browse")
         self.diary_list.pack(fill="both", expand=True)
-        # テストデータ
-        for i in range(20):
-            self.diary_list.insert(tk.END, f"test{i+1}")
+        # 選択イベントを紐付ける
+        self.diary_list.bind("<<ListboxSelect>>", self.on_diary_select)
+        # リストに日付を追加していく
+        self.date_list = self.db.get_list()
+        for date in self.date_list:
+            self.diary_list.insert(tk.END, date[1])
 
     # 日記の表示エリアを作成
-    def make_diary_show(self):
+    def make_diary_content(self):
         self.diary_text_frame = tk.Frame(self, bg="white")
         self.diary_text_frame.grid(row=0, column=1, sticky="nsew")
         self.diary_text = tk.Text(self.diary_text_frame)
         self.diary_text.pack(fill="both", expand=True)
-        # テストデータ
-        self.diary_text.insert(tk.END, "hello, world!")
+        self.diary_text.config(state="disabled")
         
     def make_show_operation(self):
         # 日記操作フレームを作成
@@ -81,3 +87,22 @@ class DiaryScreen(tk.Frame):
         self.submit_button_frame.grid(row=0, column=0, sticky="nsew")
         self.submit_button = tk.Button(self.submit_button_frame, text="決定")
         self.submit_button.pack(fill="both")
+
+    # リストの要素が選択された場合の処理
+    def on_diary_select(self, event):
+        selection = self.diary_list.curselection()
+        # イベントがなければ終了
+        if not selection:
+            return
+        
+        # 日記の内容を取得
+        index = selection[0]
+        diary_id = self.date_list[index][0]
+        detail_data = self.db.get_content(diary_id=diary_id)
+        content = detail_data[2]
+        
+        # 表示
+        self.diary_text.config(state="normal")
+        self.diary_text.delete("1.0", tk.END)
+        self.diary_text.insert(tk.END, content)
+        self.diary_text.config(state="disabled")
