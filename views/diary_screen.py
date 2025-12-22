@@ -10,6 +10,7 @@ class DiaryScreen(tk.Frame):
 
         self.make_diary_list()
         self.make_diary_show()
+        self.make_write_operation()
 
     # リストと追加ボタンのフレームを作成
     def make_diary_list(self):
@@ -44,6 +45,7 @@ class DiaryScreen(tk.Frame):
         # テストデータ
         self.diary_text.insert(tk.END, "hello, world!")
         
+    def make_show_operation(self):
         # 日記操作フレームを作成
         self.text_operation_frame = tk.Frame(self, bg="gray")
         self.text_operation_frame.place(relx=1, rely=1, anchor="se")
@@ -65,4 +67,17 @@ class DiaryScreen(tk.Frame):
         self.delete_button = tk.Button(self.delete_button_frame, text="削除")
         self.delete_button.pack(fill="both")
 
-    
+    def make_write_operation(self):
+        # 日記操作フレームを作成
+        self.text_operation_frame = tk.Frame(self, bg="gray")
+        self.text_operation_frame.place(relx=1, rely=1, anchor="se")
+        self.text_operation_frame.propagate(False)
+        # 行には広がりを許可せず、列には許可する
+        self.text_operation_frame.grid_rowconfigure(0, weight=0)
+        self.text_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
+
+        # 決定ボタンフレームを作成
+        self.submit_button_frame = tk.Frame(self.text_operation_frame, bg="skyblue")
+        self.submit_button_frame.grid(row=0, column=0, sticky="nsew")
+        self.submit_button = tk.Button(self.submit_button_frame, text="決定")
+        self.submit_button.pack(fill="both")
