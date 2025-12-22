@@ -1,19 +1,19 @@
 import tkinter as tk
 
 class DiaryScreen(tk.Frame):
-    def __init__(self, master):
+    def __init__(self, master, db):
         super().__init__(master)
         # 0行目,1列目に対して広がりを許可し、0列目には許可しない
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(1, weight=1) 
 
-        self.make_diary_list()
-        self.make_diary_show()
+        self.make_diary_list(db=db)
+        self.make_diary_content()
         self.make_write_operation()
 
     # リストと追加ボタンのフレームを作成
-    def make_diary_list(self):
+    def make_diary_list(self, db):
         self.list_operation_frame = tk.Frame(self, bg="black")
         self.list_operation_frame.grid(row=0, column=0, sticky="ns")
         # 1列目に対して広がりを許可し、0列目,0行目に対しては許可しない
@@ -32,12 +32,14 @@ class DiaryScreen(tk.Frame):
         self.diary_list_frame.grid(row=1, column=0, sticky="nsew")
         self.diary_list = tk.Listbox(self.diary_list_frame, selectmode="browse")
         self.diary_list.pack(fill="both", expand=True)
-        # テストデータ
-        for i in range(20):
-            self.diary_list.insert(tk.END, f"test{i+1}")
+        # リストに日付を追加していく
+        date_list = db.get_list()
+        for date in date_list:
+            self.diary_list.insert(tk.END, date[1])
+        
 
     # 日記の表示エリアを作成
-    def make_diary_show(self):
+    def make_diary_content(self):
         self.diary_text_frame = tk.Frame(self, bg="white")
         self.diary_text_frame.grid(row=0, column=1, sticky="nsew")
         self.diary_text = tk.Text(self.diary_text_frame)
