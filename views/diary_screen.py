@@ -49,43 +49,35 @@ class DiaryScreen(tk.Frame):
         self.diary_text = tk.Text(self.diary_text_frame)
         self.diary_text.pack(fill="both", expand=True)
         self.diary_text.config(state="disabled")
-        
-    def make_show_operation(self):
+
         # 日記操作フレームを作成
-        self.text_operation_frame = tk.Frame(self, bg="gray")
-        self.text_operation_frame.place(relx=1, rely=1, anchor="se")
-        self.text_operation_frame.propagate(False)
-        # 行には広がりを許可せず、列には許可する
-        self.text_operation_frame.grid_rowconfigure(0, weight=0)
-        self.text_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
-        self.text_operation_frame.grid_columnconfigure(1, weight=1, minsize=200)
+        self.operation_container = tk.Frame(self.diary_text_frame, bg="gray")
+        self.operation_container.place(relx=1, rely=1, anchor="se")
 
-        # 編集ボタンフレームを作成
-        self.edit_button_frame = tk.Frame(self.text_operation_frame, bg="skyblue")
-        self.edit_button_frame.grid(row=0, column=0, sticky="nsew")
-        self.edit_button = tk.Button(self.edit_button_frame, text="編集")
-        self.edit_button.pack(fill="both")
+        # 閲覧モードのフレームを作成
+        self.view_operation_frame = tk.Frame(self.operation_container, bg="gray")
+        self.view_operation_frame.grid(row=0, column=0, sticky="nsew")
+        # 列には広がりを許可する
+        self.view_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
+        self.view_operation_frame.grid_columnconfigure(1, weight=1, minsize=200)
+        # 編集、削除ボタンを作成
+        self.edit_button = tk.Button(self.view_operation_frame, text="編集")
+        self.delete_button = tk.Button(self.view_operation_frame, text="削除")
+        self.edit_button.grid(row=0, column=0, sticky="ew")
+        self.delete_button.grid(row=0, column=1, sticky="ew")
 
-        # 削除ボタンフレームを作成
-        self.delete_button_frame = tk.Frame(self.text_operation_frame, bg="lightblue")
-        self.delete_button_frame.grid(row=0, column=1, sticky="nsew")
-        self.delete_button = tk.Button(self.delete_button_frame, text="削除")
-        self.delete_button.pack(fill="both")
+        # 入力モードのフレームを作成
+        self.input_operation_frame = tk.Frame(self.operation_container, bg="gray")
+        self.input_operation_frame.grid(row=0, column=0, sticky="nsew")
+        # 列には広がりを許可する
+        self.input_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
+        # 保存ボタンを作成
+        self.save_button = tk.Button(self.input_operation_frame, text="保存", command=self.on_click_save_button)
+        self.save_button.grid(row=0, column=0, sticky="ew")
 
-    def make_write_operation(self):
-        # 日記操作フレームを作成
-        self.text_operation_frame = tk.Frame(self, bg="gray")
-        self.text_operation_frame.place(relx=1, rely=1, anchor="se")
-        self.text_operation_frame.propagate(False)
-        # 行には広がりを許可せず、列には許可する
-        self.text_operation_frame.grid_rowconfigure(0, weight=0)
-        self.text_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
-
-        # 保存ボタンフレームを作成
-        self.save_button_frame = tk.Frame(self.text_operation_frame, bg="skyblue")
-        self.save_button_frame.grid(row=0, column=0, sticky="nsew")
-        self.save_button = tk.Button(self.save_button_frame, text="保存", command=self.on_click_save_button)
-        self.save_button.pack(fill="both")
+        # 最初はどのボタンも非表示にしておく
+        self.view_operation_frame.grid_remove()
+        self.input_operation_frame.grid_remove()
 
     # リストの要素が選択された場合の処理
     def on_diary_select(self, event=None):
@@ -105,8 +97,9 @@ class DiaryScreen(tk.Frame):
         self.diary_text.delete("1.0", tk.END)
         self.diary_text.insert(tk.END, content)
         self.diary_text.config(state="disabled")
-
-        self.make_show_operation()
+        # 閲覧モードへ変更
+        self.input_operation_frame.grid_remove()
+        self.view_operation_frame.grid()
 
     # 追加ボタンが押された場合の処理
     def on_click_add_button(self):
@@ -115,7 +108,8 @@ class DiaryScreen(tk.Frame):
         # テキストを削除して書き込みモードへ変更
         self.diary_text.config(state="normal")
         self.diary_text.delete("1.0", tk.END)
-        self.make_write_operation()
+        self.view_operation_frame.grid_remove()
+        self.input_operation_frame.grid()
 
     # 保存ボタンが押された場合の処理
     def on_click_save_button(self):
@@ -123,9 +117,9 @@ class DiaryScreen(tk.Frame):
         input_content = self.diary_text.get("1.0", tk.END)
         # データベースに保存
         self.db.add_diary(input_content)
-        # 内容を削除し表示モードへ変更
+        # 内容を削除し閲覧モードへ変更
         self.make_diary_list()
         self.diary_list.select_set(0)
         self.on_diary_select()
-        self.make_show_operation()
-        
+        self.input_operation_frame.grid_remove()
+        self.view_operation_frame.grid()
