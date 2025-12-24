@@ -105,9 +105,10 @@ class DiaryScreen(tk.Frame):
     def on_click_add_button(self):
         # リストの選択を解除
         self.diary_list.select_clear(0, tk.END)
-        # テキストを削除して書き込みモードへ変更
+        # テキストを削除
         self.diary_text.config(state="normal")
         self.diary_text.delete("1.0", tk.END)
+        # 書き込みモードへ変更
         self.view_operation_frame.grid_remove()
         self.input_operation_frame.grid()
 
@@ -117,9 +118,18 @@ class DiaryScreen(tk.Frame):
         input_content = self.diary_text.get("1.0", tk.END)
         # データベースに保存
         self.db.add_diary(input_content)
-        # 内容を削除し閲覧モードへ変更
-        self.make_diary_list()
+        # リストの内容をリロード
+        self.reload_diary_list()
         self.diary_list.select_set(0)
         self.on_diary_select()
+        # 閲覧モードへ変更
         self.input_operation_frame.grid_remove()
         self.view_operation_frame.grid()
+
+    def reload_diary_list(self):
+        # 要素を全て削除
+        self.diary_list.delete(0, tk.END)
+        # リストに日付を追加していく
+        self.date_list = self.db.get_list()
+        for date in self.date_list:
+            self.diary_list.insert(tk.END, date[1])
