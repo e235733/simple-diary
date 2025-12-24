@@ -44,8 +44,8 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             for i in range(count):
-                date = test_date0 - datetime.timedelta(days=i)
-                content = f"{(count-i)**2}円稼げた、明日は{count-i}回腹筋する。"
+                date = test_date0 - datetime.timedelta(days=count-1-i)
+                content = f"{(i+1)**2}円稼げた、明日は{i+1}回腹筋する。"
                 print(content)
                 cursor.execute(sql, (date, content))
             conn.commit()
@@ -53,7 +53,7 @@ class DatabaseManager:
     
     # 日記リストを読み込む
     def get_list(self):
-        # 新しい順で取得
+        # idの小さい順で取得
         sql = "SELECT id, date FROM diaries ORDER BY id DESC"
 
         with self.get_connection() as conn:
@@ -74,5 +74,6 @@ class DatabaseManager:
 
 if __name__ == "__main__":
     db = DatabaseManager()
+    db.add_test_diary(100)
     print(db.get_list())
     print(db.get_content(25))

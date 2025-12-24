@@ -14,7 +14,6 @@ class DiaryScreen(tk.Frame):
 
         self.make_diary_list()
         self.make_diary_content()
-        self.make_write_operation()
 
     # リストと追加ボタンのフレームを作成
     def make_diary_list(self):
@@ -28,13 +27,13 @@ class DiaryScreen(tk.Frame):
         # ボタンを作成
         self.add_button_frame = tk.Frame(self.list_operation_frame, bg="red")
         self.add_button_frame.grid(row=0, column=0, sticky="ew")
-        self.add_button = tk.Button(self.add_button_frame, text="日記を追加")
+        self.add_button = tk.Button(self.add_button_frame, text="日記を追加", command=self.on_click_add_button)
         self.add_button.pack(fill="both", expand=True)
 
         # リストを作成
         self.diary_list_frame = tk.Frame(self.list_operation_frame, bg="blue")
         self.diary_list_frame.grid(row=1, column=0, sticky="nsew")
-        self.diary_list = tk.Listbox(self.diary_list_frame, selectmode="browse")
+        self.diary_list = tk.Listbox(self.diary_list_frame, selectmode="browse", exportselection=False)
         self.diary_list.pack(fill="both", expand=True)
         # 選択イベントを紐付ける
         self.diary_list.bind("<<ListboxSelect>>", self.on_diary_select)
@@ -50,46 +49,38 @@ class DiaryScreen(tk.Frame):
         self.diary_text = tk.Text(self.diary_text_frame)
         self.diary_text.pack(fill="both", expand=True)
         self.diary_text.config(state="disabled")
-        
-    def make_show_operation(self):
+
         # 日記操作フレームを作成
-        self.text_operation_frame = tk.Frame(self, bg="gray")
-        self.text_operation_frame.place(relx=1, rely=1, anchor="se")
-        self.text_operation_frame.propagate(False)
-        # 行には広がりを許可せず、列には許可する
-        self.text_operation_frame.grid_rowconfigure(0, weight=0)
-        self.text_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
-        self.text_operation_frame.grid_columnconfigure(1, weight=1, minsize=200)
+        self.operation_container = tk.Frame(self.diary_text_frame, bg="gray")
+        self.operation_container.place(relx=1, rely=1, anchor="se")
 
-        # 編集ボタンフレームを作成
-        self.edit_button_frame = tk.Frame(self.text_operation_frame, bg="skyblue")
-        self.edit_button_frame.grid(row=0, column=0, sticky="nsew")
-        self.edit_button = tk.Button(self.edit_button_frame, text="編集")
-        self.edit_button.pack(fill="both")
+        # 閲覧モードのフレームを作成
+        self.view_operation_frame = tk.Frame(self.operation_container, bg="gray")
+        self.view_operation_frame.grid(row=0, column=0, sticky="nsew")
+        # 列には広がりを許可する
+        self.view_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
+        self.view_operation_frame.grid_columnconfigure(1, weight=1, minsize=200)
+        # 編集、削除ボタンを作成
+        self.edit_button = tk.Button(self.view_operation_frame, text="編集")
+        self.delete_button = tk.Button(self.view_operation_frame, text="削除")
+        self.edit_button.grid(row=0, column=0, sticky="ew")
+        self.delete_button.grid(row=0, column=1, sticky="ew")
 
-        # 削除ボタンフレームを作成
-        self.delete_button_frame = tk.Frame(self.text_operation_frame, bg="lightblue")
-        self.delete_button_frame.grid(row=0, column=1, sticky="nsew")
-        self.delete_button = tk.Button(self.delete_button_frame, text="削除")
-        self.delete_button.pack(fill="both")
+        # 入力モードのフレームを作成
+        self.input_operation_frame = tk.Frame(self.operation_container, bg="gray")
+        self.input_operation_frame.grid(row=0, column=0, sticky="nsew")
+        # 列には広がりを許可する
+        self.input_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
+        # 保存ボタンを作成
+        self.save_button = tk.Button(self.input_operation_frame, text="保存", command=self.on_click_save_button)
+        self.save_button.grid(row=0, column=0, sticky="ew")
 
-    def make_write_operation(self):
-        # 日記操作フレームを作成
-        self.text_operation_frame = tk.Frame(self, bg="gray")
-        self.text_operation_frame.place(relx=1, rely=1, anchor="se")
-        self.text_operation_frame.propagate(False)
-        # 行には広がりを許可せず、列には許可する
-        self.text_operation_frame.grid_rowconfigure(0, weight=0)
-        self.text_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
-
-        # 決定ボタンフレームを作成
-        self.submit_button_frame = tk.Frame(self.text_operation_frame, bg="skyblue")
-        self.submit_button_frame.grid(row=0, column=0, sticky="nsew")
-        self.submit_button = tk.Button(self.submit_button_frame, text="決定")
-        self.submit_button.pack(fill="both")
+        # 最初はどのボタンも非表示にしておく
+        self.view_operation_frame.grid_remove()
+        self.input_operation_frame.grid_remove()
 
     # リストの要素が選択された場合の処理
-    def on_diary_select(self, event):
+    def on_diary_select(self, event=None):
         selection = self.diary_list.curselection()
         # イベントがなければ終了
         if not selection:
@@ -106,3 +97,39 @@ class DiaryScreen(tk.Frame):
         self.diary_text.delete("1.0", tk.END)
         self.diary_text.insert(tk.END, content)
         self.diary_text.config(state="disabled")
+        # 閲覧モードへ変更
+        self.input_operation_frame.grid_remove()
+        self.view_operation_frame.grid()
+
+    # 追加ボタンが押された場合の処理
+    def on_click_add_button(self):
+        # リストの選択を解除
+        self.diary_list.select_clear(0, tk.END)
+        # テキストを削除
+        self.diary_text.config(state="normal")
+        self.diary_text.delete("1.0", tk.END)
+        # 書き込みモードへ変更
+        self.view_operation_frame.grid_remove()
+        self.input_operation_frame.grid()
+
+    # 保存ボタンが押された場合の処理
+    def on_click_save_button(self):
+        # ユーザの入力内容を取得
+        input_content = self.diary_text.get("1.0", tk.END)
+        # データベースに保存
+        self.db.add_diary(input_content)
+        # リストの内容をリロード
+        self.reload_diary_list()
+        self.diary_list.select_set(0)
+        self.on_diary_select()
+        # 閲覧モードへ変更
+        self.input_operation_frame.grid_remove()
+        self.view_operation_frame.grid()
+
+    def reload_diary_list(self):
+        # 要素を全て削除
+        self.diary_list.delete(0, tk.END)
+        # リストに日付を追加していく
+        self.date_list = self.db.get_list()
+        for date in self.date_list:
+            self.diary_list.insert(tk.END, date[1])
