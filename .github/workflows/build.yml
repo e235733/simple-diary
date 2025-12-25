@@ -1,0 +1,44 @@
+name: Build App
+
+# mainにpushされると動作する
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # WindowsとMacで作業させる
+        os: [windows-latest, macos-latest]
+
+    steps:
+    # コードを取ってくる
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Python 3.10 をセットアップする
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    # PyInstaller をインストールする
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install pyinstaller
+
+    # ビルドする
+    - name: Build with PyInstaller
+      # 一つのファイルにまとめ、コンソールは出さない
+      run: pyinstaller main.py --onefile --noconsole --name SimpleDiary
+
+    # アップロードする
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SimpleDiary-${{ matrix.os }}
+        path: dist/
