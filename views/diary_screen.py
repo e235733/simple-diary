@@ -98,8 +98,7 @@ class DiaryScreen(tk.Frame):
         self.diary_text.insert(tk.END, content)
         self.diary_text.config(state="disabled")
         # 閲覧モードへ変更
-        self.input_operation_frame.grid_remove()
-        self.view_operation_frame.grid()
+        self.show_view_operation()
 
     # 追加ボタンが押された場合の処理
     def on_click_add_button(self):
@@ -109,8 +108,7 @@ class DiaryScreen(tk.Frame):
         self.diary_text.config(state="normal")
         self.diary_text.delete("1.0", tk.END)
         # 書き込みモードへ変更
-        self.view_operation_frame.grid_remove()
-        self.input_operation_frame.grid()
+        self.show_input_operation()
 
     # 保存ボタンが押された場合の処理
     def on_click_save_button(self):
@@ -121,8 +119,7 @@ class DiaryScreen(tk.Frame):
         # リストの内容をリロード
         self.reload_diary_list()
         # 閲覧モードへ変更
-        self.input_operation_frame.grid_remove()
-        self.view_operation_frame.grid()
+        self.show_view_operation()
 
     # 削除ボタンが押された場合の処理
     def on_click_delete_button(self):
@@ -137,6 +134,7 @@ class DiaryScreen(tk.Frame):
         # リストの内容をリロード
         self.reload_diary_list()
 
+    # 日記リストをリロードする
     def reload_diary_list(self):
         # 要素を全て削除
         self.diary_list.delete(0, tk.END)
@@ -147,3 +145,15 @@ class DiaryScreen(tk.Frame):
         # リストの一番上を選択
         self.diary_list.select_set(0)
         self.on_diary_select()
+
+    # 操作ボタンを閲覧モードのものに変える
+    def show_view_operation(self):
+        # 書き込み操作ボタンを隠し、閲覧操作ボタンを出す
+        self.input_operation_frame.grid_remove()
+        self.view_operation_frame.grid()
+
+    # 操作ボタンを書き込みモードのものに変える
+    def show_input_operation(self):
+        # 閲覧操作ボタンを隠し、書き込み操作ボタンを出す
+        self.view_operation_frame.grid_remove()
+        self.input_operation_frame.grid()
