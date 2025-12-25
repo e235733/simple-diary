@@ -80,6 +80,14 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute(sql, (diary_id,))
 
+    # 指定されたレコードを編集する
+    def edit_diary(self, diary_id, content):
+        sql = "UPDATE diaries SET content = ? WHERE id = ?"
+
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (content, diary_id))
+
 if __name__ == "__main__":
     db = DatabaseManager()
     db.add_test_diary(100)
