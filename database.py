@@ -71,6 +71,14 @@ class DatabaseManager:
             cursor.execute(sql, (diary_id,))
 
             return cursor.fetchone()
+        
+    # 指定されたレコードを削除する
+    def delete_diary(self, diary_id):
+        sql = "DELETE FROM diaries WHERE id = ?"
+
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (diary_id,))
 
 if __name__ == "__main__":
     db = DatabaseManager()
