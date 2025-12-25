@@ -10,7 +10,10 @@ class DiaryScreen(tk.Frame):
         # 0行目,1列目に対して広がりを許可し、0列目には許可しない
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=1) 
+        self.grid_columnconfigure(1, weight=1)
+
+        # どこに保存するかを保持する -1なら追加、それ以外なら値をindexとする
+        self.index_to_write = -1
 
         self.make_diary_list()
         self.make_diary_content()
@@ -61,7 +64,7 @@ class DiaryScreen(tk.Frame):
         self.view_operation_frame.grid_columnconfigure(0, weight=1, minsize=200)
         self.view_operation_frame.grid_columnconfigure(1, weight=1, minsize=200)
         # 編集、削除ボタンを作成
-        self.edit_button = tk.Button(self.view_operation_frame, text="編集")
+        self.edit_button = tk.Button(self.view_operation_frame, text="編集", command=self.on_click_edit_button)
         self.delete_button = tk.Button(self.view_operation_frame, text="削除", command=self.on_click_delete_button)
         self.edit_button.grid(row=0, column=0, sticky="ew")
         self.delete_button.grid(row=0, column=1, sticky="ew")
@@ -104,9 +107,11 @@ class DiaryScreen(tk.Frame):
     def on_click_add_button(self):
         # リストの選択を解除
         self.diary_list.select_clear(0, tk.END)
-        # テキストを削除
+        # テキストを削除する
         self.diary_text.config(state="normal")
         self.diary_text.delete("1.0", tk.END)
+        # indexの選択を解除する
+        self.index_to_write = -1
         # 書き込みモードへ変更
         self.show_input_operation()
 
@@ -114,12 +119,21 @@ class DiaryScreen(tk.Frame):
     def on_click_save_button(self):
         # ユーザの入力内容を取得
         input_content = self.diary_text.get("1.0", tk.END)
-        # データベースに保存
-        self.db.add_diary(input_content)
+        # 書き込み場所によって場合分けする
+        # 1, 値が-1のとき、すなわち追加ボタンが押された場合
+        if self.index_to_write == -1:  
+            # データベースに新規で保存
+            self.db.add_diary(input_content)
+        # 2, それ以外の場合、すなわち編集ボタンが押された場合
+        else:
+            # データベースに上書き保存
+            self.db.edit_diary(diary_id=self.index_to_write, content=input_content)
+
         # リストの内容をリロード
         self.reload_diary_list()
         # 閲覧モードへ変更
         self.show_view_operation()
+        
 
     # 削除ボタンが押された場合の処理
     def on_click_delete_button(self):
@@ -133,6 +147,19 @@ class DiaryScreen(tk.Frame):
         self.db.delete_diary(diary_id=diary_id)
         # リストの内容をリロード
         self.reload_diary_list()
+
+    # 編集ボタンが押された場合の処理
+    def on_click_edit_button(self):
+        # ユーザの選択を取得
+        selection = self.diary_list.curselection()
+        if not selection:
+            return
+        # 選択されているindexを保存する
+        index = selection[0]
+        self.index_to_write = self.date_list[index][0]
+        # 書き込みモードへ変更
+        self.diary_text.config(state="normal")
+        self.show_input_operation()
 
     # 日記リストをリロードする
     def reload_diary_list(self):
